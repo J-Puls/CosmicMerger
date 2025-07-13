@@ -1,0 +1,226 @@
+.merge-workflow {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.workflow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    opacity: 1;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.workflow-step.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.workflow-step.completed {
+    opacity: 0.8;
+}
+
+.workflow-step.active {
+    opacity: 1;
+    transform: scale(1.02);
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 100%);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    color: #888;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.workflow-step.active .step-number {
+    background: linear-gradient(45deg, #00d4ff, #9d4edd);
+    border-color: rgba(0, 212, 255, 0.6);
+    color: white;
+    box-shadow:
+            0 0 20px rgba(0, 212, 255, 0.4),
+            0 0 40px rgba(157, 78, 221, 0.2);
+}
+
+.workflow-step.completed .step-number {
+    background: linear-gradient(45deg, #2ed573, #00d4ff);
+    border-color: rgba(46, 213, 115, 0.6);
+    color: white;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.file-section {
+    margin-bottom: 25px;
+    padding: 25px;
+    background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.file-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent);
+    transition: left 0.5s ease;
+}
+
+.file-section:hover::before {
+    left: 100%;
+}
+
+.file-section:hover {
+    transform: translateY(-2px);
+    box-shadow:
+            0 10px 25px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.file-section.selected {
+    border-color: rgba(0, 212, 255, 0.6);
+    background: linear-gradient(135deg,
+    rgba(0, 212, 255, 0.1) 0%,
+    rgba(157, 78, 221, 0.05) 100%);
+    box-shadow:
+            0 0 20px rgba(0, 212, 255, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.file-section label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #e0e0e0;
+    font-size: 1.1em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.file-path {
+    font-size: 12px;
+    color: #b0b0b0;
+    margin-top: 10px;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
+    opacity: 0.8;
+}
+
+button {
+    background: linear-gradient(45deg, #00d4ff, #9d4edd);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    margin-right: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent);
+    transition: left 0.3s ease;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+            0 10px 20px rgba(0, 212, 255, 0.4),
+            0 0 30px rgba(157, 78, 221, 0.3);
+}
+
+button:disabled {
+    background: linear-gradient(45deg, #444, #666);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+button:disabled::before {
+    display: none;
+}
+
+.combine-button {
+    background: linear-gradient(45deg, #ff006e, #8338ec, #00d4ff);
+    font-size: 18px;
+    padding: 20px 40px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.combine-button:hover {
+    box-shadow:
+            0 15px 30px rgba(255, 0, 110, 0.4),
+            0 0 40px rgba(131, 56, 236, 0.3);
+}
+
+.workflow-step.disabled .file-section {
+    background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.01) 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.workflow-step.disabled button {
+    background: linear-gradient(45deg, #333, #555);
+    cursor: not-allowed;
+}
+
+.workflow-step.disabled .file-path {
+    color: #666;
+}
+
+#step-4 .step-content {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}

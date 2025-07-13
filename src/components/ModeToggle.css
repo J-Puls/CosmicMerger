@@ -1,0 +1,38 @@
+.mode-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    gap: 0;
+    border-radius: 25px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mode-btn {
+    background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 100%);
+    color: #e0e0e0;
+    padding: 12px 30px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    border-radius: 0;
+    margin-right: 0;
+}
+
+.mode-btn.active {
+    background: linear-gradient(45deg, #00d4ff, #9d4edd);
+    color: white;
+}
+
+.mode-btn:hover:not(.active) {
+    background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 100%);
+}
