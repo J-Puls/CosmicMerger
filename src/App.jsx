@@ -57,9 +57,37 @@ function App() {
     const handleCancelOperation = async () => {
         if (currentOperationId && window.electronAPI) {
             try {
-                await window.electronAPI.cancelOperation(currentOperationId);
+                const result = await window.electronAPI.cancelOperation(currentOperationId);
+
+                // Check if the cancellation itself failed
+                if (result && !result.success) {
+                    const errorMessage = result.error || result.message || 'Failed to cancel operation';
+                    console.error('Error cancelling operation:', errorMessage);
+
+                    // Optionally show user-friendly message
+                    setProgressData(prevData => ({
+                        ...prevData,
+                        status: 'error',
+                        message: `Cancel failed: ${errorMessage}`
+                    }));
+                }
             } catch (error) {
                 console.error('Error cancelling operation:', error);
+
+                // Extract meaningful error message
+                let errorMessage = 'Failed to cancel operation';
+                if (typeof error === 'object' && error !== null) {
+                    errorMessage = error.error || error.message || errorMessage;
+                } else if (typeof error === 'string') {
+                    errorMessage = error;
+                }
+
+                // Show user-friendly error message
+                setProgressData(prevData => ({
+                    ...prevData,
+                    status: 'error',
+                    message: `Cancel failed: ${errorMessage}`
+                }));
             }
         }
     };

@@ -24,6 +24,7 @@
     transition: all 0.3s ease;
     border-radius: 0;
     margin-right: 0;
+    flex-grow: 1;
 }
 
 .mode-btn.active {

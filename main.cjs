@@ -28,7 +28,7 @@ function createWindow() {
 
     if (isDev) {
         mainWindow.loadURL('http://localhost:3000');
-        mainWindow.webContents.openDevTools();
+
     } else {
         mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
     }
@@ -219,24 +219,59 @@ ipcMain.handle('trim-video', async (event, { videoPath, outputPath, startTime, e
 
 // Handle operation cancellation
 ipcMain.handle('cancel-operation', async (event, operationId) => {
+    console.log(`Attempting to cancel operation: ${operationId}`);
+
+    if (!operationId) {
+        return { success: false, error: 'No operation ID provided' };
+    }
+
     if (activeOperations.has(operationId)) {
         const ffmpegProcess = activeOperations.get(operationId);
         try {
+            // Check if process is still running
+            if (!ffmpegProcess || ffmpegProcess.killed) {
+                activeOperations.delete(operationId);
+                return { success: false, error: 'Process already terminated' };
+            }
+
+            // Try graceful termination first
             ffmpegProcess.kill('SIGTERM');
+
+            // Give it a moment to terminate gracefully
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // If still running, force kill
+            if (!ffmpegProcess.killed) {
+                ffmpegProcess.kill('SIGKILL');
+            }
+
             activeOperations.delete(operationId);
 
-            mainWindow.webContents.send('progress-update', {
-                status: 'cancelled',
-                message: 'Operation cancelled by user',
-                operationId: operationId
-            });
+            // Send cancellation update to frontend
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('progress-update', {
+                    status: 'cancelled',
+                    message: 'Operation cancelled by user',
+                    operationId: operationId
+                });
+            }
 
+            console.log(`Operation ${operationId} cancelled successfully`);
             return { success: true, message: 'Operation cancelled successfully' };
+
         } catch (error) {
             console.error('Error cancelling operation:', error);
-            return { success: false, error: error.message };
+
+            // Still remove from active operations even if kill failed
+            activeOperations.delete(operationId);
+
+            // Extract meaningful error message
+            const errorMessage = error.message || error.toString() || 'Unknown cancellation error';
+
+            return { success: false, error: errorMessage };
         }
     } else {
+        console.log(`Operation ${operationId} not found in active operations`);
         return { success: false, error: 'Operation not found or already completed' };
     }
 });

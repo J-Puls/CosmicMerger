@@ -1,3 +1,4 @@
 /.idea/
 /node_modules/
 /temp_frame_start_*jpg
+/dist/

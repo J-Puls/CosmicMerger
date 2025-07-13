@@ -72,9 +72,9 @@ const MergeInterface = ({ onMergeComplete }) => {
             }
         } catch (error) {
             console.error('Error combining files:', error);
-            // Show more detailed error to user
-            const errorMessage = error.error || error.message || 'Unknown error occurred';
-            alert(`Failed to combine files: ${errorMessage}`);
+            // // Show more detailed error to user
+            // const errorMessage = error.error || error.message || 'Unknown error occurred';
+            // alert(`Failed to combine files: ${errorMessage}`);
         } finally {
             setIsProcessing(false);
         }
