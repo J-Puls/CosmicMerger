@@ -12,6 +12,11 @@ app.commandLine.appendSwitch('--disable-gpu-compositing');
 let activeOperations = new Map();
 let mainWindow;
 
+// Function to zero-pad numbers to two digits
+function padToTwoDigits(num) {
+    return num.toString().padStart(2, '0');
+}
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1920,
@@ -28,7 +33,7 @@ function createWindow() {
 
     if (isDev) {
         mainWindow.loadURL('http://localhost:3000');
-
+        mainWindow.webContents.openDevTools();
     } else {
         mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
     }
@@ -91,6 +96,120 @@ ipcMain.handle('select-output-file', async () => {
     return null;
 });
 
+// Handle directory selection for renamer
+ipcMain.handle('select-directory', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory']
+    });
+
+    if (!result.canceled) {
+        return result.filePaths[0];
+    }
+    return null;
+});
+
+// Handle file renaming
+ipcMain.handle('rename-files', async (event, { dirPath, seasonNumber }) => {
+    const operationId = Date.now().toString();
+
+    return new Promise((resolve, reject) => {
+        try {
+            // Validate inputs
+            if (!fs.existsSync(dirPath)) {
+                reject({ success: false, error: 'Directory does not exist.' });
+                return;
+            }
+
+            if (isNaN(seasonNumber) || seasonNumber <= 0) {
+                reject({ success: false, error: 'Invalid season number.' });
+                return;
+            }
+
+            // Send initial progress
+            mainWindow.webContents.send('progress-update', {
+                status: 'started',
+                message: 'Starting file renaming...',
+                operationId: operationId
+            });
+
+            // Create new sub-directory for the season
+            const seasonDir = path.join(dirPath, `Season ${padToTwoDigits(seasonNumber)}`);
+            if (!fs.existsSync(seasonDir)) {
+                fs.mkdirSync(seasonDir);
+            }
+
+            // Get list of all video files in the directory
+            const files = fs.readdirSync(dirPath).filter(file => {
+                const filePath = path.join(dirPath, file);
+                return fs.statSync(filePath).isFile() && file.match(/\.(mp4|mkv|avi|mov|webm)$/i);
+            });
+
+            if (files.length === 0) {
+                reject({ success: false, error: 'No video files found in the selected directory.' });
+                return;
+            }
+
+            // Send progress update
+            mainWindow.webContents.send('progress-update', {
+                status: 'processing',
+                message: `Found ${files.length} video files to rename...`,
+                operationId: operationId
+            });
+
+            const renamedFiles = [];
+
+            // Loop through each file and rename
+            files.forEach((file, index) => {
+                const episodeNumber = padToTwoDigits(index + 1);
+                const newFileName = `Episode S${padToTwoDigits(seasonNumber)}E${episodeNumber}${path.extname(file)}`;
+                const oldFilePath = path.join(dirPath, file);
+                const newFilePath = path.join(seasonDir, newFileName);
+
+                // Copy the file to the new location with the new name
+                fs.copyFileSync(oldFilePath, newFilePath);
+
+                renamedFiles.push({
+                    originalName: file,
+                    newName: newFileName,
+                    seasonDir: seasonDir
+                });
+
+                // Send progress update for each file
+                const progress = ((index + 1) / files.length) * 100;
+                mainWindow.webContents.send('progress-update', {
+                    status: 'processing',
+                    percent: progress,
+                    message: `Renamed: ${file} → ${newFileName}`,
+                    operationId: operationId
+                });
+            });
+
+            // Send completion
+            mainWindow.webContents.send('progress-update', {
+                status: 'completed',
+                message: `Successfully renamed ${files.length} files!`,
+                operationId: operationId
+            });
+
+            resolve({
+                success: true,
+                message: `Successfully renamed ${files.length} files!`,
+                renamedFiles: renamedFiles,
+                seasonDirectory: seasonDir
+            });
+
+        } catch (error) {
+            console.error('Error renaming files:', error);
+            mainWindow.webContents.send('progress-update', {
+                status: 'error',
+                message: `Error: ${error.message}`,
+                operationId: operationId
+            });
+            reject({ success: false, error: error.message });
+        }
+    });
+});
+
 // Handle video and audio combination
 ipcMain.handle('combine-files', async (event, { videoPath, audioPath, outputPath }) => {
     const operationId = Date.now().toString();
@@ -137,15 +256,15 @@ ipcMain.handle('combine-files', async (event, { videoPath, audioPath, outputPath
             })
             .on('error', (err) => {
                 activeOperations.delete(operationId);
-                console.error('FFmpeg error:', err);
                 mainWindow.webContents.send('progress-update', {
                     status: 'error',
                     message: `Error: ${err.message}`,
                     operationId: operationId
                 });
                 reject({ success: false, error: err.message });
-            })
-            .run();
+            });
+
+        ffmpegProcess.run();
     });
 });
 
@@ -154,30 +273,27 @@ ipcMain.handle('trim-video', async (event, { videoPath, outputPath, startTime, e
     const operationId = Date.now().toString();
 
     return new Promise((resolve, reject) => {
-        const ffmpegCommand = ffmpeg(videoPath);
+        let ffmpegProcess = ffmpeg(videoPath);
 
-        if (startTime) {
-            ffmpegCommand.seekInput(startTime);
+        // Apply trimming options if provided
+        if (startTime !== null) {
+            ffmpegProcess = ffmpegProcess.seekInput(parseFloat(startTime));
         }
 
-        if (endTime && startTime) {
+        if (endTime !== null && startTime !== null) {
             const duration = parseFloat(endTime) - parseFloat(startTime);
-            ffmpegCommand.duration(duration);
-        } else if (endTime) {
-            ffmpegCommand.duration(endTime);
+            ffmpegProcess = ffmpegProcess.duration(duration);
+        } else if (endTime !== null) {
+            ffmpegProcess = ffmpegProcess.duration(parseFloat(endTime));
         }
 
-        ffmpegCommand
-            .outputOptions([
-                '-c:v libx264',
-                '-c:a aac',
-                '-avoid_negative_ts make_zero'
-            ])
+        ffmpegProcess = ffmpegProcess
+            .outputOptions(['-c:v libx264', '-c:a aac'])
             .output(outputPath);
 
-        activeOperations.set(operationId, ffmpegCommand);
+        activeOperations.set(operationId, ffmpegProcess);
 
-        ffmpegCommand
+        ffmpegProcess
             .on('start', (commandLine) => {
                 console.log('FFmpeg trim command:', commandLine);
                 mainWindow.webContents.send('progress-update', {
@@ -198,90 +314,49 @@ ipcMain.handle('trim-video', async (event, { videoPath, outputPath, startTime, e
                 activeOperations.delete(operationId);
                 mainWindow.webContents.send('progress-update', {
                     status: 'completed',
-                    message: 'Video trimmed successfully!',
+                    message: 'Trimming completed!',
                     operationId: operationId
                 });
                 resolve({ success: true, message: 'Video trimmed successfully!' });
             })
             .on('error', (err) => {
                 activeOperations.delete(operationId);
-                console.error('FFmpeg trim error:', err);
                 mainWindow.webContents.send('progress-update', {
                     status: 'error',
                     message: `Error: ${err.message}`,
                     operationId: operationId
                 });
                 reject({ success: false, error: err.message });
-            })
-            .run();
+            });
+
+        ffmpegProcess.run();
     });
 });
 
 // Handle operation cancellation
 ipcMain.handle('cancel-operation', async (event, operationId) => {
-    console.log(`Attempting to cancel operation: ${operationId}`);
-
-    if (!operationId) {
-        return { success: false, error: 'No operation ID provided' };
-    }
-
     if (activeOperations.has(operationId)) {
-        const ffmpegProcess = activeOperations.get(operationId);
-        try {
-            // Check if process is still running
-            if (!ffmpegProcess || ffmpegProcess.killed) {
-                activeOperations.delete(operationId);
-                return { success: false, error: 'Process already terminated' };
-            }
+        const operation = activeOperations.get(operationId);
+        operation.kill('SIGTERM');
+        activeOperations.delete(operationId);
 
-            // Try graceful termination first
-            ffmpegProcess.kill('SIGTERM');
+        mainWindow.webContents.send('progress-update', {
+            status: 'cancelled',
+            message: 'Operation cancelled',
+            operationId: operationId
+        });
 
-            // Give it a moment to terminate gracefully
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // If still running, force kill
-            if (!ffmpegProcess.killed) {
-                ffmpegProcess.kill('SIGKILL');
-            }
-
-            activeOperations.delete(operationId);
-
-            // Send cancellation update to frontend
-            if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.webContents.send('progress-update', {
-                    status: 'cancelled',
-                    message: 'Operation cancelled by user',
-                    operationId: operationId
-                });
-            }
-
-            console.log(`Operation ${operationId} cancelled successfully`);
-            return { success: true, message: 'Operation cancelled successfully' };
-
-        } catch (error) {
-            console.error('Error cancelling operation:', error);
-
-            // Still remove from active operations even if kill failed
-            activeOperations.delete(operationId);
-
-            // Extract meaningful error message
-            const errorMessage = error.message || error.toString() || 'Unknown cancellation error';
-
-            return { success: false, error: errorMessage };
-        }
-    } else {
-        console.log(`Operation ${operationId} not found in active operations`);
-        return { success: false, error: 'Operation not found or already completed' };
+        return { success: true, message: 'Operation cancelled' };
     }
+    return { success: false, error: 'Operation not found' };
 });
 
-// Serve frame images as base64 data URLs
+// Handle frame data reading
 ipcMain.handle('get-frame-data', async (event, framePath) => {
     try {
         if (fs.existsSync(framePath)) {
-            const imageBuffer = fs.readFileSync(framePath);
-            const base64Image = imageBuffer.toString('base64');
+            const imageData = fs.readFileSync(framePath);
+            const base64Image = imageData.toString('base64');
             return { success: true, dataUrl: `data:image/jpeg;base64,${base64Image}` };
         } else {
             return { success: false, error: 'Frame file not found' };
@@ -331,41 +406,25 @@ ipcMain.handle('extract-frame-cached', async (event, { videoPath, timestamp, out
             .seekInput(seekTime)
             .frames(1)
             .outputOptions([
-                '-vf', 'scale=160:90:force_original_aspect_ratio=decrease,pad=160:90:(ow-iw)/2:(oh-ih)/2',
-                '-q:v', '8',
-                '-f', 'image2',
-                '-threads', '1',
-                '-preset', 'ultrafast'
+                '-q:v 2',
+                '-f image2'
             ])
             .output(fullOutputPath)
             .on('end', () => {
-                if (fs.existsSync(fullOutputPath)) {
-                    if (frameCache.size >= maxCacheSize) {
-                        const firstKey = frameCache.keys().next().value;
-                        const oldPath = frameCache.get(firstKey);
-                        frameCache.delete(firstKey);
-                        try {
-                            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-                        } catch (err) {
-                            console.error('Cache cleanup error:', err);
-                        }
+                if (frameCache.size >= maxCacheSize) {
+                    const firstKey = frameCache.keys().next().value;
+                    const firstPath = frameCache.get(firstKey);
+                    if (fs.existsSync(firstPath)) {
+                        fs.unlinkSync(firstPath);
                     }
-                    frameCache.set(cacheKey, fullOutputPath);
-
-                    resolve({ success: true, framePath: fullOutputPath, cached: false });
-                } else {
-                    reject({ success: false, error: 'Frame file was not created' });
+                    frameCache.delete(firstKey);
                 }
+
+                frameCache.set(cacheKey, fullOutputPath);
+                resolve({ success: true, framePath: fullOutputPath, cached: false });
             })
             .on('error', (err) => {
                 console.error('Frame extraction error:', err);
-                try {
-                    if (fs.existsSync(fullOutputPath)) {
-                        fs.unlinkSync(fullOutputPath);
-                    }
-                } catch (cleanupErr) {
-                    console.error('Cleanup error:', cleanupErr);
-                }
                 reject({ success: false, error: err.message });
             })
             .run();

@@ -25,6 +25,8 @@
     border-radius: 0;
     margin-right: 0;
     flex-grow: 1;
+    display: flex;
+    flex-shrink: 0;
 }
 
 .mode-btn.active {

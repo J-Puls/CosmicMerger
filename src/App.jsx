@@ -3,6 +3,7 @@ import StarField from './components/StarField';
 import ModeToggle from './components/ModeToggle';
 import MergeInterface from './components/MergeInterface';
 import TrimInterface from './components/TrimInterface';
+import RenamerInterface from './components/RenamerInterface';
 import ProgressSection from './components/ProgressSection';
 import TrimOptionDialog from './components/TrimOptionDialog';
 import CursorEffects from './components/CursorEffects';
@@ -57,38 +58,23 @@ function App() {
     const handleCancelOperation = async () => {
         if (currentOperationId && window.electronAPI) {
             try {
-                const result = await window.electronAPI.cancelOperation(currentOperationId);
-
-                // Check if the cancellation itself failed
-                if (result && !result.success) {
-                    const errorMessage = result.error || result.message || 'Failed to cancel operation';
-                    console.error('Error cancelling operation:', errorMessage);
-
-                    // Optionally show user-friendly message
-                    setProgressData(prevData => ({
-                        ...prevData,
-                        status: 'error',
-                        message: `Cancel failed: ${errorMessage}`
-                    }));
-                }
+                await window.electronAPI.cancelOperation(currentOperationId);
             } catch (error) {
                 console.error('Error cancelling operation:', error);
-
-                // Extract meaningful error message
-                let errorMessage = 'Failed to cancel operation';
-                if (typeof error === 'object' && error !== null) {
-                    errorMessage = error.error || error.message || errorMessage;
-                } else if (typeof error === 'string') {
-                    errorMessage = error;
-                }
-
-                // Show user-friendly error message
-                setProgressData(prevData => ({
-                    ...prevData,
-                    status: 'error',
-                    message: `Cancel failed: ${errorMessage}`
-                }));
             }
+        }
+    };
+
+    const renderCurrentInterface = () => {
+        switch (currentMode) {
+            case 'merge':
+                return <MergeInterface onMergeComplete={handleMergeComplete} />;
+            case 'trim':
+                return <TrimInterface pendingFile={pendingTrimFile} />;
+            case 'rename':
+                return <RenamerInterface />;
+            default:
+                return <MergeInterface onMergeComplete={handleMergeComplete} />;
         }
     };
 
@@ -105,11 +91,7 @@ function App() {
                     onModeChange={setCurrentMode}
                 />
 
-                {currentMode === 'merge' ? (
-                    <MergeInterface onMergeComplete={handleMergeComplete} />
-                ) : (
-                    <TrimInterface pendingFile={pendingTrimFile} />
-                )}
+                {renderCurrentInterface()}
 
                 <ProgressSection
                     progressData={progressData}
