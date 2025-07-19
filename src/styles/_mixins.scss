@@ -1,0 +1,183 @@
+// Glass morphism effect
+@mixin glass-card($bg: $glass-bg-light, $border: $border-medium, $blur: 10px) {
+  background: linear-gradient(135deg, $bg 0%, $glass-bg-dark 100%);
+  backdrop-filter: blur($blur);
+  border: 1px solid $border;
+  box-shadow:
+          $shadow-glass,
+          0 0 0 1px rgba(255, 255, 255, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+// Gradient backgrounds
+@mixin gradient-primary() {
+  background: linear-gradient(45deg, $primary-cyan, $primary-purple);
+}
+
+@mixin gradient-accent() {
+  background: linear-gradient(45deg, $primary-pink, $primary-violet, $primary-cyan);
+}
+
+@mixin gradient-success() {
+  background: linear-gradient(45deg, $success-green, $primary-cyan);
+}
+
+// Hover sweep effect
+@mixin sweep-effect($color: rgba(255, 255, 255, 0.3)) {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, $color, transparent);
+    transition: left $transition-slow;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+// Glow effect on hover
+@mixin glow-hover($primary-color: $primary-cyan, $secondary-color: $primary-purple) {
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+            0 10px 20px rgba($primary-color, 0.4),
+            0 0 30px rgba($secondary-color, 0.3);
+  }
+}
+
+// Button base styles
+@mixin btn-cosmic($bg-gradient: true) {
+  @if $bg-gradient {
+    @include gradient-primary();
+  }
+
+  color: white;
+  border: none;
+  border-radius: $border-radius-pill;
+  font-family: $font-primary;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: $transition-base;
+
+  @include sweep-effect();
+  @include glow-hover();
+
+  &:disabled {
+    background: linear-gradient(45deg, #444, #666);
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+// File section styles
+@mixin file-section() {
+  @include glass-card();
+  @include sweep-effect(rgba(255, 255, 255, 0.1));
+
+  padding: $spacer * 1.5;
+  border-radius: $border-radius;
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+            0 10px 25px rgba(0, 0, 0, 0.4),
+            0 0 0 1px $border-medium;
+  }
+
+  &.selected {
+    border-color: rgba($primary-cyan, 0.6);
+    background: linear-gradient(135deg,
+            rgba($primary-cyan, 0.1) 0%,
+            rgba($primary-purple, 0.05) 100%);
+    box-shadow:
+            $shadow-glow-cyan,
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  label {
+    display: block;
+    font-weight: 700;
+    color: $text-light;
+    font-size: 1.1em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: $spacer;
+  }
+}
+
+// Animation keyframes
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes trailFade {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes starExplosion {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+}
+
+// Responsive typography
+@mixin responsive-font-size($base-size: 1rem) {
+  font-size: $base-size;
+
+  @media (max-width: map-get($grid-breakpoints, md)) {
+    font-size: $base-size * 0.875;
+  }
+}
+
+// Text glow effect
+@mixin text-glow($color: $primary-cyan) {
+  text-shadow:
+          0 0 10px rgba($color, 0.8),
+          0 0 20px rgba($color, 0.6),
+          0 0 30px rgba($color, 0.4),
+          0 0 40px rgba($color, 0.2);
+}

@@ -7,7 +7,7 @@ import RenamerInterface from './components/RenamerInterface';
 import ProgressSection from './components/ProgressSection';
 import TrimOptionDialog from './components/TrimOptionDialog';
 import CursorEffects from './components/CursorEffects';
-import './App.css';
+import {Container} from "react-bootstrap";
 
 function App() {
     const [currentMode, setCurrentMode] = useState('merge');
@@ -79,26 +79,29 @@ function App() {
     };
 
     return (
-        <div className="app">
+        <Container className="app p-5">
+
             <StarField />
+
             <CursorEffects />
 
-            <div className="container">
-                <h1>Cosmic Merger</h1>
+            <section className={'d-flex flex-column gap-3'}>
 
                 <ModeToggle
                     currentMode={currentMode}
                     onModeChange={setCurrentMode}
                 />
 
-                {renderCurrentInterface()}
+                <div className={'mt-5'}>
+                    {renderCurrentInterface()}
+                </div>
 
                 <ProgressSection
                     progressData={progressData}
                     onCancel={handleCancelOperation}
                     showCancel={!!currentOperationId}
                 />
-            </div>
+            </section>
 
             {showTrimDialog && (
                 <TrimOptionDialog
@@ -106,7 +109,7 @@ function App() {
                     onDismiss={handleDismissTrimDialog}
                 />
             )}
-        </div>
+        </Container>
     );
 }
 

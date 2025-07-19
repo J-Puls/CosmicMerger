@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './MergeInterface.css';
+import {Button} from "react-bootstrap";
+
 
 const MergeInterface = ({ onMergeComplete }) => {
     const [videoPath, setVideoPath] = useState(null);
@@ -100,13 +101,13 @@ const MergeInterface = ({ onMergeComplete }) => {
     };
 
     return (
-        <div className="merge-workflow">
-            <div className={getStepClass(1)}>
+        <div className="merge-workflow d-flex flex-column gap-3">
+            <div className={`${getStepClass(1)} d-flex gap-3`}>
                 <div className="step-number">1</div>
-                <div className="step-content">
+                <div className="step-content flex-fill">
                     <div className={`file-section ${videoPath ? 'selected' : ''}`}>
                         <label>Select Video File:</label>
-                        <button onClick={selectVideo}>Choose Video</button>
+                        <Button onClick={selectVideo}>Choose Video</Button>
                         <div className="file-path">
                             {videoPath || 'No video selected'}
                         </div>
@@ -114,14 +115,14 @@ const MergeInterface = ({ onMergeComplete }) => {
                 </div>
             </div>
 
-            <div className={getStepClass(2)}>
+            <div className={`${getStepClass(2)} d-flex gap-3`}>
                 <div className="step-number">2</div>
-                <div className="step-content">
+                <div className="step-content flex-fill">
                     <div className={`file-section ${audioPath ? 'selected' : ''}`}>
                         <label>Select Audio File:</label>
-                        <button onClick={selectAudio} disabled={!videoPath}>
+                        <Button onClick={selectAudio} disabled={!videoPath} variant={!videoPath && 'outline-dark'}>
                             Choose Audio
-                        </button>
+                        </Button>
                         <div className="file-path">
                             {audioPath || (videoPath ? 'Click to select audio file' : 'Select video first')}
                         </div>
@@ -129,14 +130,14 @@ const MergeInterface = ({ onMergeComplete }) => {
                 </div>
             </div>
 
-            <div className={getStepClass(3)}>
+            <div className={`${getStepClass(3)} d-flex gap-3`}>
                 <div className="step-number">3</div>
-                <div className="step-content">
+                <div className="step-content flex-fill">
                     <div className={`file-section ${outputPath ? 'selected' : ''}`}>
                         <label>Output Location:</label>
-                        <button onClick={selectOutput} disabled={!audioPath}>
+                        <Button onClick={selectOutput} disabled={!audioPath} variant={!audioPath && 'outline-dark'}>
                             Choose Output
-                        </button>
+                        </Button>
                         <div className="file-path">
                             {outputPath || (audioPath ? 'Click to choose output location' : 'Select audio first')}
                         </div>
@@ -144,16 +145,17 @@ const MergeInterface = ({ onMergeComplete }) => {
                 </div>
             </div>
 
-            <div className={getStepClass(4)}>
+            <div className={`${getStepClass(4)} d-flex gap-3`}>
                 <div className="step-number">4</div>
-                <div className="step-content">
-                    <button
-                        className="combine-button"
+                <div className="step-content flex-fill d-flex">
+                    <Button
+                        className="combine-button d-flex flex-fill align-items-center justify-content-center p-3"
                         onClick={combineFiles}
                         disabled={!outputPath || isProcessing}
+                        variant={(!outputPath || isProcessing) && 'outline-dark'}
                     >
-                        Collide
-                    </button>
+                        <h5 className={'m-0 fw-bold'}>Collide</h5>
+                    </Button>
                 </div>
             </div>
         </div>

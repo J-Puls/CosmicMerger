@@ -19,12 +19,15 @@
     "concurrently": "^8.2.2",
     "electron": "^27.0.0",
     "electron-builder": "^24.6.4",
+    "sass-embedded": "^1.89.2",
     "vite": "^5.2.0",
     "wait-on": "^7.2.0"
   },
   "dependencies": {
+    "bootstrap": "^5.3.7",
     "fluent-ffmpeg": "^2.1.2",
     "react": "^18.2.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^18.2.0"
   },
   "engines": {

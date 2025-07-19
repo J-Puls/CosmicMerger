@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import './TrimOptionDialog.css';
 
 const TrimOptionDialog = ({ onStartTrim, onDismiss }) => {
     const [show, setShow] = useState(false);

@@ -1,5 +1,6 @@
 import React from 'react';
-import './ModeToggle.css';
+import {Button} from "react-bootstrap";
+
 
 const ModeToggle = ({ currentMode, onModeChange }) => {
     const modes = [
@@ -24,17 +25,18 @@ const ModeToggle = ({ currentMode, onModeChange }) => {
     ];
 
     return (
-        <div className="mode-toggle">
+        <div className="mode-toggle d-flex justify-content-center">
             {modes.map(mode => (
-                <button
+                <Button
                     key={mode.id}
-                    className={`mode-button ${currentMode === mode.id ? 'active' : ''}`}
+                    className={`mode-button d-flex gap-2 align-items-center flex-fill rounded-0 justify-content-center ${currentMode === mode.id ? 'active' : ''}`}
                     onClick={() => onModeChange(mode.id)}
+                    variant={currentMode === mode.id ? 'secondary' : 'dark'}
                     title={mode.description}
                 >
                     <span className="mode-icon">{mode.icon}</span>
                     <span className="mode-label">{mode.label}</span>
-                </button>
+                </Button>
             ))}
         </div>
     );

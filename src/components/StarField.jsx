@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import './StarField.css';
 
 const StarField = () => {
     useEffect(() => {

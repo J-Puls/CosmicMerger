@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './TrimInterface.css';
+import {Button} from "react-bootstrap";
 
 const TrimInterface = ({ pendingFile }) => {
     const [trimVideoPath, setTrimVideoPath] = useState(null);
@@ -221,7 +221,7 @@ const TrimInterface = ({ pendingFile }) => {
             <div className="trim-interface">
                 <div className="file-section">
                     <label>Select Video to Trim:</label>
-                    <button onClick={selectTrimVideo}>Choose Video</button>
+                    <Button onClick={selectTrimVideo}>Choose Video</Button>
                     <div className="file-path">
                         {trimVideoPath || 'No video selected'}
                     </div>
@@ -238,7 +238,7 @@ const TrimInterface = ({ pendingFile }) => {
         <div className="trim-interface">
             <div className="file-section selected">
                 <label>Video to Trim:</label>
-                <button onClick={selectTrimVideo}>Choose Different Video</button>
+                <Button onClick={selectTrimVideo}>Choose Different Video</Button>
                 <div className="file-path">{trimVideoPath}</div>
                 <div className="video-info">
                     <span>Duration: {formatTime(videoDuration)} ({videoDuration.toFixed(1)}s)</span>
@@ -313,19 +313,19 @@ const TrimInterface = ({ pendingFile }) => {
 
             <div className="file-section">
                 <label>Output Location:</label>
-                <button onClick={selectTrimOutput}>Choose Output</button>
+                <Button onClick={selectTrimOutput}>Choose Output</Button>
                 <div className="file-path">
                     {trimOutputPath || 'No output location selected'}
                 </div>
             </div>
 
-            <button
+            <Button
                 className="combine-button"
                 onClick={trimVideo}
                 disabled={!trimOutputPath || isProcessing}
             >
                 Slice
-            </button>
+            </Button>
         </div>
     );
 };

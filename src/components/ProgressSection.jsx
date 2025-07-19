@@ -1,5 +1,5 @@
 import React from 'react';
-import './ProgressSection.css';
+
 
 const ProgressSection = ({ progressData, onCancel, showCancel }) => {
     if (!progressData) return null;

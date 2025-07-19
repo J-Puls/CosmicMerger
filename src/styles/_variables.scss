@@ -1,0 +1,62 @@
+// Color scheme
+$primary-cyan: #00d4ff;
+$primary-purple: #9d4edd;
+$primary-pink: #ff006e;
+$primary-violet: #8338ec;
+$success-green: #2ed573;
+
+// Neutrals
+$bg-dark: #090a0f;
+$bg-medium: #1b2735;
+$text-light: #e0e0e0;
+$text-medium: #b0b0b0;
+$text-dark: #888;
+$border-light: rgba(255, 255, 255, 0.15);
+$border-medium: rgba(255, 255, 255, 0.2);
+
+// Glass morphism colors
+$glass-bg-light: rgba(255, 255, 255, 0.1);
+$glass-bg-medium: rgba(255, 255, 255, 0.08);
+$glass-bg-dark: rgba(255, 255, 255, 0.03);
+
+// Typography
+$font-primary: 'Orbitron', monospace;
+$font-mono: 'Courier New', monospace;
+
+// Spacing (compatible with Bootstrap)
+$spacer: 1rem;
+$spacers: (
+        0: 0,
+        1: $spacer * 0.25,
+        2: $spacer * 0.5,
+        3: $spacer,
+        4: $spacer * 1.5,
+        5: $spacer * 3,
+        6: $spacer * 4
+);
+
+// Borders
+$border-radius: 15px;
+$border-radius-sm: 10px;
+$border-radius-lg: 20px;
+$border-radius-pill: 25px;
+
+// Shadows
+$shadow-glow-cyan: 0 0 20px rgba($primary-cyan, 0.4);
+$shadow-glow-purple: 0 0 40px rgba($primary-purple, 0.2);
+$shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+// Transitions
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.2s ease;
+$transition-slow: all 0.5s ease;
+
+// Breakpoints (Bootstrap compatible)
+$grid-breakpoints: (
+        xs: 0,
+        sm: 576px,
+        md: 768px,
+        lg: 992px,
+        xl: 1200px,
+        xxl: 1400px
+);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './RenamerInterface.css';
+import {Button, FormControl} from "react-bootstrap";
 
 const RenamerInterface = () => {
     const [directoryPath, setDirectoryPath] = useState(null);
@@ -83,13 +83,13 @@ const RenamerInterface = () => {
     };
 
     return (
-        <div className="renamer-interface">
-            <div className={getStepClass(1)}>
+        <div className="renamer-interface d-flex flex-column gap-3">
+            <div className={`${getStepClass(1)} d-flex gap-3`}>
                 <div className="step-number">1</div>
-                <div className="step-content">
+                <div className="step-content flex-fill">
                     <div className={`file-section ${directoryPath ? 'selected' : ''}`}>
                         <label>Select Directory:</label>
-                        <button onClick={selectDirectory}>Choose Folder</button>
+                        <Button onClick={selectDirectory}>Choose Folder</Button>
                         <div className="file-path">
                             {directoryPath ? formatPath(directoryPath) : 'No directory selected'}
                         </div>
@@ -97,13 +97,13 @@ const RenamerInterface = () => {
                 </div>
             </div>
 
-            <div className={getStepClass(2)}>
+            <div className={`${getStepClass(2)} d-flex gap-3`}>
                 <div className="step-number">2</div>
-                <div className="step-content">
-                    <div className={`season-section ${seasonNumber && directoryPath ? 'selected' : ''}`}>
+                <div className="step-content flex-fill">
+                    <div className={`file-section ${seasonNumber && directoryPath ? 'selected' : ''}`}>
                         <label>Season Number:</label>
-                        <div className="season-input-container">
-                            <input
+                        <div className="season-input-container d-flex gap-3 align-items-center">
+                            <FormControl
                                 type="number"
                                 min="1"
                                 max="99"
@@ -111,48 +111,54 @@ const RenamerInterface = () => {
                                 onChange={handleSeasonChange}
                                 placeholder="Enter season number"
                                 disabled={!directoryPath}
-                                className="season-input"
+                                className="season-input flex-shrink-1"
+                                style={{ maxWidth: 100 }}
                             />
-                            <span className="season-preview">
-                                {seasonNumber && `→ Season ${seasonNumber.padStart(2, '0')}`}
+                            <span className="season-preview flex-shrink-0 lead d-flex gap-3">
+                                <span>
+                                    ->
+                                </span>
+                                {seasonNumber && `Season ${seasonNumber.padStart(2, '0')}`}
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className={getStepClass(3)}>
+            <div className={`${getStepClass(3)} d-flex gap-3`}>
                 <div className="step-number">3</div>
-                <div className="step-content">
-                    <button
+                <div className="step-content flex-fill">
+                    <Button
                         className="rename-button"
                         onClick={renameFiles}
-                        disabled={!directoryPath || !seasonNumber || isProcessing}
+                        disabled={!directoryPath || !seasonNumber || isProcessing || renamedFiles?.length}
                     >
                         {isProcessing ? 'Renaming...' : 'Rename Episodes'}
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {currentStep >= 4 && renamedFiles.length > 0 && (
-                <div className="step completed">
+                <div className="workflow-step completed d-flex gap-3">
                     <div className="step-number">✓</div>
-                    <div className="step-content">
-                        <div className="results-section">
-                            <h3>Renaming Complete!</h3>
-                            <p className="results-summary">
-                                Successfully renamed {renamedFiles.length} file(s)
-                            </p>
+                    <div className="step-content d-flex flex-column file-section flex-fill gap-3">
+
+                           <div className={'d-flex justify-content-between'}>
+                               <label>Renaming Complete!</label>
+                               <p className="results-summary">
+                                   Successfully renamed {renamedFiles.length} file(s)
+                               </p>
+                           </div>
 
                             <div className="renamed-files-list">
-                                <h4>Renamed Files:</h4>
-                                <div className="files-grid">
+                                <h5>Renamed Files:</h5>
+                                <div className="files-grid d-flex flex-column gap-1 ps-3 text-primary">
                                     {renamedFiles.slice(0, 10).map((file, index) => (
-                                        <div key={index} className="file-rename-item">
+                                        <small key={index} className="file-rename-item d-flex gap-3 align-items-center">
                                             <div className="original-name">{file.originalName}</div>
                                             <div className="arrow">→</div>
                                             <div className="new-name">{file.newName}</div>
-                                        </div>
+                                        </small>
                                     ))}
                                     {renamedFiles.length > 10 && (
                                         <div className="more-files">
@@ -163,11 +169,11 @@ const RenamerInterface = () => {
                             </div>
 
                             <div className="action-buttons">
-                                <button className="reset-button" onClick={resetRenamer}>
+                                <Button className="reset-button" onClick={resetRenamer}>
                                     Rename Another Folder
-                                </button>
+                                </Button>
                             </div>
-                        </div>
+
                     </div>
                 </div>
             )}
