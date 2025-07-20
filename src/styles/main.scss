@@ -411,3 +411,84 @@ body {
 .border-primary {
   border-color: $primary-cyan !important;
 }
+
+// Additional styles for the renamer interface with episode offset
+
+.renamer-interface {
+  .season-input-container {
+    .episode-offset-input {
+      text-align: center;
+      font-weight: 600;
+    }
+  }
+
+  .preview-section {
+
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    h5, h6 {
+      color: $text-light;
+      margin-bottom: 0.75rem;
+    }
+
+    .preview-item {
+      .original-name {
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .arrow {
+        color: $text-medium;
+        flex-shrink: 0;
+      }
+
+      .new-name {
+        font-weight: 600;
+        color: $primary-cyan;
+      }
+    }
+
+    .more-files {
+      font-style: italic;
+      margin-top: 0.5rem;
+    }
+  }
+
+  .preview-loading {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba($primary-cyan, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba($primary-cyan, 0.2);
+  }
+
+
+
+  .rename-controls {
+    margin-top: 1rem;
+
+    .rename-button {
+      @include gradient-primary();
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($primary-cyan, 0.3);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

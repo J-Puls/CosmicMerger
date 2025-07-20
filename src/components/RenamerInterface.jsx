@@ -4,6 +4,7 @@ import {Button, FormControl} from "react-bootstrap";
 const RenamerInterface = () => {
     const [directoryPath, setDirectoryPath] = useState(null);
     const [seasonNumber, setSeasonNumber] = useState('1');
+    const [episodeOffset, setEpisodeOffset] = useState('1'); // NEW: Episode offset state
     const [currentStep, setCurrentStep] = useState(1);
     const [isProcessing, setIsProcessing] = useState(false);
     const [renamedFiles, setRenamedFiles] = useState([]);
@@ -27,16 +28,25 @@ const RenamerInterface = () => {
         }
     };
 
-    // Auto-generate preview whenever directory or season number changes
+    // NEW: Handle episode offset changes
+    const handleEpisodeOffsetChange = (e) => {
+        const value = e.target.value;
+        if (value === '' || (parseInt(value) > 0 && parseInt(value) <= 999)) {
+            setEpisodeOffset(value);
+        }
+    };
+
+    // Auto-generate preview whenever directory, season number, or episode offset changes
     useEffect(() => {
         const generatePreview = async () => {
-            if (!directoryPath || !seasonNumber || !window.electronAPI) {
+            if (!directoryPath || !seasonNumber || !episodeOffset || !window.electronAPI) {
                 setPreview(null);
                 return;
             }
 
             const seasonNum = parseInt(seasonNumber, 10);
-            if (isNaN(seasonNum) || seasonNum <= 0) {
+            const episodeOffsetNum = parseInt(episodeOffset, 10);
+            if (isNaN(seasonNum) || seasonNum <= 0 || isNaN(episodeOffsetNum) || episodeOffsetNum <= 0) {
                 setPreview(null);
                 return;
             }
@@ -46,7 +56,8 @@ const RenamerInterface = () => {
             try {
                 const result = await window.electronAPI.previewFiles({
                     dirPath: directoryPath,
-                    seasonNumber: seasonNum
+                    seasonNumber: seasonNum,
+                    episodeOffset: episodeOffsetNum // NEW: Pass episode offset to backend
                 });
 
                 if (result.success) {
@@ -63,17 +74,18 @@ const RenamerInterface = () => {
         // Small delay to avoid too many rapid calls while typing
         const timeoutId = setTimeout(generatePreview, 300);
         return () => clearTimeout(timeoutId);
-    }, [directoryPath, seasonNumber]);
+    }, [directoryPath, seasonNumber, episodeOffset]); // NEW: Added episodeOffset dependency
 
     const renameFiles = async () => {
-        if (!directoryPath || !seasonNumber || !window.electronAPI) {
-            alert('Please select a directory and enter a valid season number');
+        if (!directoryPath || !seasonNumber || !episodeOffset || !window.electronAPI) {
+            alert('Please select a directory and enter valid season and episode numbers');
             return;
         }
 
         const seasonNum = parseInt(seasonNumber, 10);
-        if (isNaN(seasonNum) || seasonNum <= 0) {
-            alert('Please enter a valid season number');
+        const episodeOffsetNum = parseInt(episodeOffset, 10);
+        if (isNaN(seasonNum) || seasonNum <= 0 || isNaN(episodeOffsetNum) || episodeOffsetNum <= 0) {
+            alert('Please enter valid season and episode numbers');
             return;
         }
 
@@ -83,7 +95,8 @@ const RenamerInterface = () => {
         try {
             const result = await window.electronAPI.renameFiles({
                 dirPath: directoryPath,
-                seasonNumber: seasonNum
+                seasonNumber: seasonNum,
+                episodeOffset: episodeOffsetNum // NEW: Pass episode offset to backend
             });
 
             if (result.success) {
@@ -101,6 +114,7 @@ const RenamerInterface = () => {
     const resetRenamer = () => {
         setDirectoryPath(null);
         setSeasonNumber('1');
+        setEpisodeOffset('1'); // NEW: Reset episode offset
         setCurrentStep(1);
         setRenamedFiles([]);
         setIsProcessing(false);
@@ -139,99 +153,98 @@ const RenamerInterface = () => {
                 </div>
             </div>
 
-            {/* Step 2: Season Number & Preview */}
+            {/* Step 2: Season Number, Episode Offset & Preview */}
             {currentStep >= 2 && (
                 <div className={`${getStepClass(2)} d-flex gap-3`}>
                     <div className="step-number">2</div>
                     <div className="step-content flex-fill">
-                        <div className={`file-section ${seasonNumber && directoryPath ? 'selected' : ''}`}>
-                            <label>Season Number:</label>
-                            <div className="season-input-container d-flex gap-3 align-items-center mb-3">
-                                <FormControl
-                                    type="number"
-                                    min="1"
-                                    max="99"
-                                    value={seasonNumber}
-                                    onChange={handleSeasonChange}
-                                    placeholder="Enter season number"
-                                    disabled={!directoryPath}
-                                    className="season-input flex-shrink-1"
-                                    style={{ maxWidth: 100 }}
-                                />
-                                <span className="season-preview flex-shrink-0 lead d-flex gap-3">
-                                    <span>→</span>
-                                    {seasonNumber && `Season ${seasonNumber.padStart(2, '0')}`}
+                        <div className={`file-section d-flex flex-column gap-3 ${seasonNumber && episodeOffset && directoryPath ? 'selected' : ''}`}>
+                            <label>Settings:</label>
+                            <div className="season-input-container d-flex flex-column gap-3">
+                                <div className={'d-flex gap-3 align-items-center'}>
+                                    <span>
+                                    Season
                                 </span>
+                                    <FormControl
+                                        type="number"
+                                        min="1"
+                                        max="99"
+                                        value={seasonNumber}
+                                        onChange={handleSeasonChange}
+                                        placeholder="Season"
+                                        disabled={!directoryPath}
+                                        className="season-input flex-shrink-1"
+                                        style={{ maxWidth: 100 }}
+                                    />
+                                    <span>
+                                        Episode Offset
+                                    </span>
+                                    <FormControl
+                                        type="number"
+                                        min="1"
+                                        max="999"
+                                        value={episodeOffset}
+                                        onChange={handleEpisodeOffsetChange}
+                                        placeholder="Start Episode"
+                                        disabled={!directoryPath}
+                                        className="episode-offset-input flex-shrink-1"
+                                        style={{ maxWidth: 120 }}
+                                    />
+                                </div>
+
                             </div>
 
                             {/* Auto Preview Section */}
                             {isGeneratingPreview && (
-                                <div className="d-flex align-items-center gap-2 text-muted">
+                                <div className="preview-loading d-flex align-items-center gap-2 text-primary">
                                     <div className="spinner-border spinner-border-sm" role="status"></div>
                                     <span>Generating preview...</span>
                                 </div>
                             )}
 
+                            {preview.directoryRename && (
+                                <div className="directory-preview preview-section">
+                                    <h6 className={'text-warning'}>Directory rename:</h6>
+                                    <small className="preview-item d-flex gap-3 align-items-center p-2 flex-fill rounded">
+                                        <div className="original-name text-white-50">{preview.directoryRename.originalName}</div>
+                                        <div className="arrow">-></div>
+                                        <div className="new-name text-primary">{preview.directoryRename.newName}</div>
+                                    </small>
+                                </div>
+                            )}
+
                             {preview && !isGeneratingPreview && (
-                                <div className="preview-section">
-
-                                    {/* Directory Rename Preview */}
-                                    {preview.directoryRename && (
-                                        <div className="directory-preview mb-3">
-                                            <small className="text-warning d-block mb-1">📁 Directory Rename:</small>
-                                            <small className="d-flex gap-2 align-items-center p-2 bg-dark rounded small">
-                                                <span className="text-white-50">
-                                                    {preview.directoryRename.originalName}
-                                                </span>
-                                                <span className="text-white">-></span>
-                                                <span className="text-primary fw-bold">
-                                                    {preview.directoryRename.newName}
-                                                </span>
-                                            </small>
+                                <>
+                                    <div className="preview-section">
+                                        <h6 className={'text-warning'}>File rename ({preview.totalFiles}):</h6>
+                                        <div className="preview-list d-flex flex-column gap-1 ps-3 mb-3">
+                                            {preview.fileRenames.slice(0, 5).map((file, index) => (
+                                                <small key={index} className="preview-item d-flex gap-3 align-items-center">
+                                                    <div className="original-name text-white-50">{file.originalName}</div>
+                                                    <div className="arrow">-></div>
+                                                    <div className="new-name text-primary">{file.newName}</div>
+                                                </small>
+                                            ))}
+                                            {preview.fileRenames.length > 5 && (
+                                                <div className="more-files text-white-50">
+                                                    ... and {preview.fileRenames.length - 5} more files
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
 
-                                    {/* File Renames Preview - Compact */}
-                                    <div className="files-preview">
-                                        <small className=" d-block mb-1">📄 {preview.totalFiles} file(s) will be renamed:</small>
-                                        <div className="preview-files-list bg-dark rounded p-3" style={{ maxHeight: 300, overflowY: 'auto' }}>
-                                            <div className="d-flex flex-column gap-1">
-                                                {preview.fileRenames.slice(0, 8).map((file, index) => (
-                                                    <div key={index} className="file-rename-preview d-flex gap-2 align-items-center">
-                                                        <small className="text-warning" >
-                                                            {String(index + 1).padStart(2, '0')}.
-                                                        </small>
-                                                        <small className="flex-fill d-flex gap-2 align-items-center">
-                                                            <span className="text-white-50">
-                                                                {file.originalName}
-                                                            </span>
-                                                            <span className="text-white">-></span>
-                                                            <span className="text-info fw-bold">
-                                                                {file.newName}
-                                                            </span>
-                                                        </small>
-                                                    </div>
-                                                ))}
-                                                {preview.fileRenames.length > 8 && (
-                                                    <div className="text-center text-muted" style={{ fontSize: '0.7rem' }}>
-                                                        ... and {preview.fileRenames.length - 8} more files
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
+
                                     </div>
-
-                                    {/* Execute Button */}
-                                    <div className="mt-3">
+                                    <div className="rename-controls">
                                         <Button
+                                            className="rename-button"
                                             onClick={renameFiles}
-                                            disabled={isProcessing}
-                                            className="w-100"
-                                        >
-                                            {isProcessing ? 'Renaming...' : `Rename (${preview.totalFiles} files)`}
+                                            disabled={isProcessing || !preview}
+                                    >
+                                            {isProcessing ?
+                                                'Renaming...' : `Rename (${preview.totalFiles} files)`}
                                         </Button>
                                     </div>
-                                </div>
+                                </>
                             )}
                         </div>
                     </div>
