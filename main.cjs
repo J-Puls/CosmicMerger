@@ -108,7 +108,7 @@ ipcMain.handle('select-directory', async () => {
     return null;
 });
 
-// Handle file renaming
+// Handle file renaming - Modified to rename in place
 ipcMain.handle('rename-files', async (event, { dirPath, seasonNumber }) => {
     const operationId = Date.now().toString();
 
@@ -132,12 +132,6 @@ ipcMain.handle('rename-files', async (event, { dirPath, seasonNumber }) => {
                 operationId: operationId
             });
 
-            // Create new sub-directory for the season
-            const seasonDir = path.join(dirPath, `Season ${padToTwoDigits(seasonNumber)}`);
-            if (!fs.existsSync(seasonDir)) {
-                fs.mkdirSync(seasonDir);
-            }
-
             // Get list of all video files in the directory
             const files = fs.readdirSync(dirPath).filter(file => {
                 const filePath = path.join(dirPath, file);
@@ -158,24 +152,24 @@ ipcMain.handle('rename-files', async (event, { dirPath, seasonNumber }) => {
 
             const renamedFiles = [];
 
-            // Loop through each file and rename
+            // First, rename all the files in place
             files.forEach((file, index) => {
                 const episodeNumber = padToTwoDigits(index + 1);
                 const newFileName = `Episode S${padToTwoDigits(seasonNumber)}E${episodeNumber}${path.extname(file)}`;
                 const oldFilePath = path.join(dirPath, file);
-                const newFilePath = path.join(seasonDir, newFileName);
+                const newFilePath = path.join(dirPath, newFileName);
 
-                // Copy the file to the new location with the new name
-                fs.copyFileSync(oldFilePath, newFilePath);
+                // Rename the file in place (no copying)
+                fs.renameSync(oldFilePath, newFilePath);
 
                 renamedFiles.push({
                     originalName: file,
                     newName: newFileName,
-                    seasonDir: seasonDir
+                    seasonDir: dirPath // Now it's the same directory
                 });
 
                 // Send progress update for each file
-                const progress = ((index + 1) / files.length) * 100;
+                const progress = ((index + 1) / files.length) * 90; // Save 10% for folder rename
                 mainWindow.webContents.send('progress-update', {
                     status: 'processing',
                     percent: progress,
@@ -184,18 +178,55 @@ ipcMain.handle('rename-files', async (event, { dirPath, seasonNumber }) => {
                 });
             });
 
+            // Now rename the containing directory to match Season XX format
+            const parentDir = path.dirname(dirPath);
+            const currentDirName = path.basename(dirPath);
+            let newDirName = `Season ${padToTwoDigits(seasonNumber)}`;
+            let newDirPath = path.join(parentDir, newDirName);
+
+            // Only rename the directory if it's not already named correctly
+            if (currentDirName !== newDirName) {
+                // Check if target directory name already exists
+                if (fs.existsSync(newDirPath)) {
+                    // If target exists, append a number to make it unique
+                    let counter = 1;
+                    let uniqueDirPath = newDirPath;
+                    while (fs.existsSync(uniqueDirPath)) {
+                        uniqueDirPath = path.join(parentDir, `${newDirName} (${counter})`);
+                        counter++;
+                    }
+                    newDirPath = uniqueDirPath;
+                    newDirName = path.basename(uniqueDirPath);
+                }
+
+                mainWindow.webContents.send('progress-update', {
+                    status: 'processing',
+                    percent: 95,
+                    message: `Renaming folder to: ${newDirName}`,
+                    operationId: operationId
+                });
+
+                // Rename the directory
+                fs.renameSync(dirPath, newDirPath);
+
+                // Update the seasonDir in renamedFiles to reflect the new directory path
+                renamedFiles.forEach(file => {
+                    file.seasonDir = newDirPath;
+                });
+            }
+
             // Send completion
             mainWindow.webContents.send('progress-update', {
                 status: 'completed',
-                message: `Successfully renamed ${files.length} files!`,
+                message: `Successfully renamed ${files.length} files and organized into ${newDirName}!`,
                 operationId: operationId
             });
 
             resolve({
                 success: true,
-                message: `Successfully renamed ${files.length} files!`,
+                message: `Successfully renamed ${files.length} files and organized into ${newDirName}!`,
                 renamedFiles: renamedFiles,
-                seasonDirectory: seasonDir
+                seasonDirectory: newDirPath || dirPath
             });
 
         } catch (error) {
@@ -428,5 +459,92 @@ ipcMain.handle('extract-frame-cached', async (event, { videoPath, timestamp, out
                 reject({ success: false, error: err.message });
             })
             .run();
+    });
+});
+
+// Handle file preview - Shows what changes will be made without executing them
+ipcMain.handle('preview-files', async (event, { dirPath, seasonNumber }) => {
+    return new Promise((resolve, reject) => {
+        try {
+            // Validate inputs
+            if (!fs.existsSync(dirPath)) {
+                reject({ success: false, error: 'Directory does not exist.' });
+                return;
+            }
+
+            if (isNaN(seasonNumber) || seasonNumber <= 0) {
+                reject({ success: false, error: 'Invalid season number.' });
+                return;
+            }
+
+            // Get list of all video files in the directory
+            const files = fs.readdirSync(dirPath).filter(file => {
+                const filePath = path.join(dirPath, file);
+                return fs.statSync(filePath).isFile() && file.match(/\.(mp4|mkv|avi|mov|webm)$/i);
+            });
+
+            if (files.length === 0) {
+                reject({ success: false, error: 'No video files found in the selected directory.' });
+                return;
+            }
+
+            // Generate preview of file renames
+            const fileRenamePreview = files.map((file, index) => {
+                const episodeNumber = padToTwoDigits(index + 1);
+                const newFileName = `Episode S${padToTwoDigits(seasonNumber)}E${episodeNumber}${path.extname(file)}`;
+
+                return {
+                    originalName: file,
+                    newName: newFileName,
+                    originalPath: path.join(dirPath, file),
+                    newPath: path.join(dirPath, newFileName)
+                };
+            });
+
+            // Generate preview of directory rename
+            const currentDirName = path.basename(dirPath);
+            const parentDir = path.dirname(dirPath);
+            const newDirName = `Season ${padToTwoDigits(seasonNumber)}`;
+            const newDirPath = path.join(parentDir, newDirName);
+
+            let directoryRenamePreview = null;
+
+            // Only show directory rename if it would actually change
+            if (currentDirName !== newDirName) {
+                let finalDirName = newDirName;
+                let finalDirPath = newDirPath;
+
+                // Check if target directory name already exists
+                if (fs.existsSync(newDirPath)) {
+                    let counter = 1;
+                    while (fs.existsSync(finalDirPath)) {
+                        finalDirName = `${newDirName} (${counter})`;
+                        finalDirPath = path.join(parentDir, finalDirName);
+                        counter++;
+                    }
+                }
+
+                directoryRenamePreview = {
+                    originalName: currentDirName,
+                    newName: finalDirName,
+                    originalPath: dirPath,
+                    newPath: finalDirPath
+                };
+            }
+
+            resolve({
+                success: true,
+                preview: {
+                    fileRenames: fileRenamePreview,
+                    directoryRename: directoryRenamePreview,
+                    totalFiles: files.length,
+                    seasonNumber: seasonNumber
+                }
+            });
+
+        } catch (error) {
+            console.error('Error generating preview:', error);
+            reject({ success: false, error: error.message });
+        }
     });
 });

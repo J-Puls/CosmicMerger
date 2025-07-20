@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     combineFiles: (data) => ipcRenderer.invoke('combine-files', data),
     trimVideo: (data) => ipcRenderer.invoke('trim-video', data),
     renameFiles: (data) => ipcRenderer.invoke('rename-files', data),
+    previewFiles: (data) => ipcRenderer.invoke('preview-files', data), // NEW: Preview function
     cancelOperation: (operationId) => ipcRenderer.invoke('cancel-operation', operationId),
     getVideoDuration: (videoPath) => ipcRenderer.invoke('get-video-duration', videoPath),
     extractFrameCached: (data) => ipcRenderer.invoke('extract-frame-cached', data),
