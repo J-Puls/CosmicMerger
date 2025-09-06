@@ -202,7 +202,7 @@ const RenamerInterface = () => {
                                 </div>
                             )}
 
-                            {preview.directoryRename && (
+                            {preview?.directoryRename && (
                                 <div className="directory-preview preview-section">
                                     <h6 className={'text-warning'}>Directory rename:</h6>
                                     <small className="preview-item d-flex gap-3 align-items-center p-2 flex-fill rounded">
