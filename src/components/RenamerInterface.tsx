@@ -1,8 +1,8 @@
 import { useState, useEffect, ChangeEvent } from 'react';
-import { LuArrowLeft, LuArrowRight, LuFilePen, LuCheck } from 'react-icons/lu';
+import { LuArrowLeft, LuArrowRight, LuCheck, LuCircleAlert } from 'react-icons/lu';
 import Stepper from 'components/Stepper';
 import { useToast } from 'components/toast_container';
-import { RenamedFile, RenamePreview } from 'types/electron';
+import { RenamePreview } from 'types/electron';
 
 const RenamerInterface = () => {
     const { addToast } = useToast();
@@ -11,7 +11,6 @@ const RenamerInterface = () => {
     const [episodeOffset, setEpisodeOffset] = useState('1');
     const [currentStep, setCurrentStep] = useState(1);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [renamedFiles, setRenamedFiles] = useState<RenamedFile[]>([]);
     const [preview, setPreview] = useState<RenamePreview | null>(null);
     const [previewError, setPreviewError] = useState<string | null>(null);
     const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
@@ -78,7 +77,6 @@ const RenamerInterface = () => {
         const seasonNum = parseInt(seasonNumber, 10);
         const episodeOffsetNum = parseInt(episodeOffset, 10);
         setIsProcessing(true);
-        setRenamedFiles([]);
         try {
             const result = await window.electronAPI.renameFiles({
                 dirPath: directoryPath,
@@ -86,8 +84,7 @@ const RenamerInterface = () => {
                 episodeOffset: episodeOffsetNum,
             });
             if (result.success) {
-                setRenamedFiles(result.renamedFiles ?? []);
-                setCurrentStep(4);
+                resetRenamer();
             }
         } catch {
             addToast('Rename failed. Check that the folder is accessible.', 'error');
@@ -101,7 +98,6 @@ const RenamerInterface = () => {
         setSeasonNumber('1');
         setEpisodeOffset('1');
         setCurrentStep(1);
-        setRenamedFiles([]);
         setIsProcessing(false);
         setPreview(null);
         setPreviewError(null);
@@ -123,40 +119,9 @@ const RenamerInterface = () => {
     const goBack = () => setCurrentStep(s => s - 1);
     const goNext = () => setCurrentStep(s => s + 1);
 
-    if (currentStep === 4) {
-        return (
-            <div className="rename-complete">
-                <div className="file-section selected">
-                    <label>Rename Complete</label>
-                    <p className="rename-complete-summary">
-                        Successfully renamed {renamedFiles.length} file{renamedFiles.length !== 1 ? 's' : ''}
-                    </p>
-                    <div className="renamed-files-list">
-                        {renamedFiles.slice(0, 10).map((file, index) => (
-                            <div key={index} className="review-row">
-                                <span className="review-path" style={{ color: 'var(--text-muted)' }}>{file.originalName}</span>
-                                <span className="review-label" style={{ minWidth: 'auto' }}>{'→'}</span>
-                                <span className="review-path">{file.newName}</span>
-                            </div>
-                        ))}
-                        {renamedFiles.length > 10 && (
-                            <div className="file-path">… and {renamedFiles.length - 10} more files</div>
-                        )}
-                    </div>
-                </div>
-                <div className="wizard-nav" style={{ borderTop: 'none', paddingTop: 0, marginTop: '1rem' }}>
-                    <div />
-                    <button className="btn btn-secondary d-flex align-items-center gap-2" onClick={resetRenamer}>
-                        <LuFilePen size={15} /> Rename Another Folder
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="merge-wizard">
-            <Stepper steps={['Folder', 'Settings', 'Preview']} currentStep={currentStep} />
+            <Stepper steps={['Folder', 'Settings', 'Review']} currentStep={currentStep} />
 
             <div className="wizard-body">
                 {currentStep === 1 && (
@@ -203,40 +168,42 @@ const RenamerInterface = () => {
 
                 {currentStep === 3 && (
                     <div className={`file-section ${previewError ? '' : 'selected'}`}>
-                        <label>Preview</label>
+                        <label>Review</label>
                         {previewError && (
-                            <div className="file-path" style={{ color: 'var(--bs-danger)' }}>{previewError}</div>
+                            <div className="review-error">
+                                <LuCircleAlert size={14} />
+                                <span>{previewError}</span>
+                            </div>
                         )}
                         {isGeneratingPreview && (
-                            <div className="preview-loading d-flex align-items-center gap-2">
+                            <div className="review-loading">
                                 <div className="spinner-border spinner-border-sm" role="status" />
-                                <span className="file-path">Generating preview…</span>
+                                <span>Generating preview…</span>
                             </div>
                         )}
                         {preview && !isGeneratingPreview && (
-                            <div className="rename-preview-list">
+                            <div className="rename-review-list">
                                 {preview.directoryRename && (
-                                    <div className="rename-preview-group">
+                                    <div className="rename-review-folder">
                                         <span className="rename-preview-group-label">Folder</span>
-                                        <div className="review-row">
-                                            <span className="review-path" style={{ color: 'var(--text-muted)' }}>{preview.directoryRename.originalName}</span>
-                                            <span className="review-label" style={{ minWidth: 'auto' }}>{'→'}</span>
-                                            <span className="review-path">{preview.directoryRename.newName}</span>
+                                        <div className="rename-review-row">
+                                            <span className="rename-review-original">{preview.directoryRename.originalName}</span>
+                                            <LuArrowRight size={12} className="rename-review-arrow" />
+                                            <span className="rename-review-new">{preview.directoryRename.newName}</span>
                                         </div>
                                     </div>
                                 )}
-                                <div className="rename-preview-group">
+                                <div className="rename-review-files">
                                     <span className="rename-preview-group-label">Files ({preview.totalFiles})</span>
-                                    {preview.fileRenames.slice(0, 5).map((file, index) => (
-                                        <div key={index} className="review-row">
-                                            <span className="review-path" style={{ color: 'var(--text-muted)' }}>{file.originalName}</span>
-                                            <span className="review-label" style={{ minWidth: 'auto' }}>{'→'}</span>
-                                            <span className="review-path">{file.newName}</span>
-                                        </div>
-                                    ))}
-                                    {preview.fileRenames.length > 5 && (
-                                        <div className="file-path">… and {preview.fileRenames.length - 5} more files</div>
-                                    )}
+                                    <div className="rename-review-scroll">
+                                        {preview.fileRenames.map((file, index) => (
+                                            <div key={index} className="rename-review-row">
+                                                <span className="rename-review-original">{file.originalName}</span>
+                                                <LuArrowRight size={12} className="rename-review-arrow" />
+                                                <span className="rename-review-new">{file.newName}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         )}

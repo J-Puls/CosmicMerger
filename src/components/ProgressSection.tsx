@@ -9,15 +9,6 @@ interface ProgressSectionProps {
 const ProgressSection = ({ progressData, onCancel, showCancel }: ProgressSectionProps) => {
     if (!progressData) return null;
 
-    const getStatusClass = (): string => {
-        if (progressData.status === 'error' || progressData.status === 'cancelled') {
-            return 'status-message error';
-        } else if (progressData.status === 'completed') {
-            return 'status-message success';
-        }
-        return 'status-message';
-    };
-
     return (
         <div className="progress-section">
             <div className="cm-progress-bar">
@@ -26,16 +17,11 @@ const ProgressSection = ({ progressData, onCancel, showCancel }: ProgressSection
                     style={{ width: `${progressData.percent ?? 0}%` }}
                 />
             </div>
-            <div className="progress-controls">
-                <div className={getStatusClass()}>
-                    {progressData.message}
+            {showCancel && (
+                <div className="progress-controls">
+                    <button className="cancel-button" onClick={onCancel}>Cancel</button>
                 </div>
-                {showCancel && (
-                    <button className="cancel-button" onClick={onCancel}>
-                        Cancel
-                    </button>
-                )}
-            </div>
+            )}
         </div>
     );
 };

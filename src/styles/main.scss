@@ -671,6 +671,106 @@ body {
   margin-bottom: 0.25rem;
 }
 
+.rename-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.rename-review-folder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  background: color.mix($bg-elevated, $accent, 82%);
+  border: 1px solid color.mix($border-default, $accent, 60%);
+  border-radius: 6px;
+}
+
+.rename-review-files {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.rename-review-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $border-default;
+    border-radius: 2px;
+  }
+}
+
+.rename-review-row {
+  display: grid;
+  grid-template-columns: 1fr 16px 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid color.mix($border-default, transparent, 40%);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.rename-review-original {
+  font-family: $font-mono;
+  font-size: 0.725rem;
+  color: $text-muted;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rename-review-new {
+  font-family: $font-mono;
+  font-size: 0.725rem;
+  color: $text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rename-review-arrow {
+  color: $text-muted;
+  flex-shrink: 0;
+  justify-self: center;
+}
+
+.review-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: $text-muted;
+  padding: 0.25rem 0;
+}
+
+.review-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--bs-danger);
+  padding: 0.25rem 0;
+}
+
 .rename-complete-summary {
   font-size: 0.875rem;
   color: $text-secondary;

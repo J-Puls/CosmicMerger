@@ -15,19 +15,30 @@ const AppInner = () => {
     const [currentOperationId, setCurrentOperationId] = useState<string | null>(null);
     const [showTrimDialog, setShowTrimDialog] = useState(false);
     const [pendingTrimFile, setPendingTrimFile] = useState<string | null>(null);
+    const { addToast } = useToast();
 
     useEffect(() => {
         if (!window.electronAPI) return;
 
         const handleProgressUpdate = (_event: unknown, data: ProgressData) => {
-            setProgressData(data);
-
             if (data.operationId && data.status === 'started') {
                 setCurrentOperationId(data.operationId);
             }
 
-            if (data.status === 'completed' || data.status === 'error' || data.status === 'cancelled') {
+            if (data.status === 'completed') {
+                setProgressData(null);
                 setCurrentOperationId(null);
+                addToast(data.message ?? 'Operation completed.', 'success');
+            } else if (data.status === 'error') {
+                setProgressData(null);
+                setCurrentOperationId(null);
+                addToast(data.message ?? 'An error occurred.', 'error');
+            } else if (data.status === 'cancelled') {
+                setProgressData(null);
+                setCurrentOperationId(null);
+                addToast(data.message ?? 'Operation cancelled.', 'info');
+            } else {
+                setProgressData(data);
             }
         };
 
@@ -52,8 +63,6 @@ const AppInner = () => {
         setShowTrimDialog(false);
         setPendingTrimFile(null);
     };
-
-    const { addToast } = useToast();
 
     const handleCancelOperation = async () => {
         if (currentOperationId && window.electronAPI) {
