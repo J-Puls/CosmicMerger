@@ -1,62 +1,36 @@
-// Color scheme
-$primary-cyan: #00d4ff;
-$primary-purple: #9d4edd;
-$primary-pink: #ff006e;
-$primary-violet: #8338ec;
-$success-green: #2ed573;
+// === COLORS ===
+$accent: #25255e;
+$accent-hover: #3535a8;
+$accent-muted: rgba(37, 37, 94, 0.3);
 
-// Neutrals
-$bg-dark: #090a0f;
-$bg-medium: #1b2735;
-$text-light: #e0e0e0;
-$text-medium: #b0b0b0;
-$text-dark: #888;
-$border-light: rgba(255, 255, 255, 0.15);
-$border-medium: rgba(255, 255, 255, 0.2);
+$success: #22c55e;
+$danger: #ef4444;
+$warning: #f59e0b;
 
-// Glass morphism colors
-$glass-bg-light: rgba(255, 255, 255, 0.1);
-$glass-bg-medium: rgba(255, 255, 255, 0.08);
-$glass-bg-dark: rgba(255, 255, 255, 0.03);
+$bg-base: #020409;
+$bg-sidebar: #010308;
+$bg-surface: #080c18;
+$bg-elevated: #0e1223;
+$border-default: #181d35;
+$border-subtle: #0c1020;
 
-// Typography
-$font-primary: 'Orbitron', monospace;
-$font-mono: 'Courier New', monospace;
+$text-primary: #dde2f0;
+$text-secondary: #8890b0;
+$text-muted: #4a5070;
 
-// Spacing (compatible with Bootstrap)
+// === TYPOGRAPHY ===
+$font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+$font-title: 'Orbitron', $font-body;
+$font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+// === SPACING ===
 $spacer: 1rem;
-$spacers: (
-        0: 0,
-        1: $spacer * 0.25,
-        2: $spacer * 0.5,
-        3: $spacer,
-        4: $spacer * 1.5,
-        5: $spacer * 3,
-        6: $spacer * 4
-);
 
-// Borders
-$border-radius: 15px;
-$border-radius-sm: 10px;
-$border-radius-lg: 20px;
-$border-radius-pill: 25px;
+// === BORDERS ===
+$radius-sm: 4px;
+$radius-md: 6px;
+$radius-lg: 8px;
 
-// Shadows
-$shadow-glow-cyan: 0 0 10px rgba($primary-cyan, 0.4);
-$shadow-glow-purple: 0 0 40px rgba($primary-purple, 0.2);
-$shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
-
-// Transitions
-$transition-base: all 0.3s ease;
-$transition-fast: all 0.2s ease;
-$transition-slow: all 0.5s ease;
-
-// Breakpoints (Bootstrap compatible)
-$grid-breakpoints: (
-        xs: 0,
-        sm: 576px,
-        md: 768px,
-        lg: 992px,
-        xl: 1200px,
-        xxl: 1400px
-);
+// === TRANSITIONS ===
+$transition-fast: 150ms ease;
+$transition-base: 200ms ease;

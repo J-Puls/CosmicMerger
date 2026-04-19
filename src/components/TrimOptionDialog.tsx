@@ -1,22 +1,26 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const TrimOptionDialog = ({ onStartTrim, onDismiss }) => {
+interface TrimOptionDialogProps {
+    onStartTrim: () => void;
+    onDismiss: () => void;
+}
+
+const TrimOptionDialog = ({ onStartTrim, onDismiss }: TrimOptionDialogProps) => {
     const [show, setShow] = useState(false);
 
     useEffect(() => {
-        // Trigger show animation after component mounts
         const timer = setTimeout(() => setShow(true), 100);
         return () => clearTimeout(timer);
     }, []);
 
     const handleStartTrim = () => {
         setShow(false);
-        setTimeout(onStartTrim, 300); // Wait for animation to complete
+        setTimeout(onStartTrim, 300);
     };
 
     const handleDismiss = () => {
         setShow(false);
-        setTimeout(onDismiss, 300); // Wait for animation to complete
+        setTimeout(onDismiss, 300);
     };
 
     return (

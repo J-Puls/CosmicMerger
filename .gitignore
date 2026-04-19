@@ -2,3 +2,4 @@
 /node_modules/
 /temp_frame_start_*jpg
 /dist/
+/dist-electron/

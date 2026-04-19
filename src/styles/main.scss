@@ -1,11 +1,8 @@
-// Import our custom variables (override Bootstrap vars)
-@import './variables';
-@import './mixins';
+@use 'sass:color';
+@use './variables' as *;
+@use './mixins' as *;
 
-// Global font import
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-
-// Global reset and base styles
+// === GLOBAL RESET ===
 * {
   margin: 0;
   padding: 0;
@@ -13,228 +10,315 @@
 }
 
 body {
-  font-family: $font-primary;
-  background: radial-gradient(ellipse at bottom, $bg-medium 0%, $bg-dark 100%);
+  font-family: $font-body;
+  background: $bg-base;
+  color: $text-primary;
   min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-  color: $text-light;
+  overflow: hidden;
 }
 
-// Main app container
-.app {
-  width: 100%;
+// === APP SHELL LAYOUT ===
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
   height: 100vh;
-  position: relative;
-  padding: $spacer;
-  max-width: 1200px;
-
-  @media (min-width: map-get($grid-breakpoints, md)) {
-    padding: $spacer * 2;
-  }
+  overflow: hidden;
 }
 
-// Main content container with floating animation
-.cosmic-container {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: $spacer * 2.5;
-  border-radius: $border-radius-lg;
-  animation: float 6s ease-in-out infinite;
-
-  @include glass-card();
-
-  @media (max-width: map-get($grid-breakpoints, md)) {
-    margin: $spacer;
-    padding: $spacer * 1.25;
-  }
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
 }
 
-// Typography
-.cosmic-title {
-  text-align: center;
-  color: $primary-cyan;
-  font-size: 2.5rem;
-  font-weight: 900;
-  margin-bottom: $spacer * 2;
-
-  @include text-glow($primary-cyan);
-  @include responsive-font-size(2.5rem);
+// === TITLEBAR ===
+.app-titlebar {
+  height: 36px;
+  background: $bg-sidebar;
+  border-bottom: 1px solid $border-subtle;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
 }
 
-// Button styles
-.btn-cosmic {
-  @include btn-cosmic();
-  padding: 0.75rem 1.5rem;
-  font-size: 0.875rem;
-  margin-right: $spacer * 0.625;
+.titlebar-drag {
+  flex: 1;
+  height: 100%;
 }
 
-.btn-cosmic-lg {
-  @include btn-cosmic();
-  @include gradient-accent();
-  font-size: 1.125rem;
-  padding: 1.25rem 2.5rem;
-  margin-top: $spacer * 2;
-  width: 100%;
-  max-width: 300px;
+.titlebar-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-btn {
+  width: 46px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $text-muted;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background $transition-fast, color $transition-fast;
 
   &:hover {
-    box-shadow:
-            0 15px 30px rgba($primary-pink, 0.4),
-            0 0 40px rgba($primary-violet, 0.3);
+    background: $bg-elevated;
+    color: $text-primary;
+  }
+
+  &.titlebar-close:hover {
+    background: $danger;
+    color: #fff;
   }
 }
 
-.btn-cosmic-success {
-  @include btn-cosmic();
-  @include gradient-success();
+.app-sidebar {
+  width: 56px;
+  background: $bg-sidebar;
+  border-right: 1px solid $border-default;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-// File section components
+.app-logo {
+  font-family: $font-title;
+  font-weight: 900;
+  font-size: 0.875rem;
+  color: $accent;
+  margin-bottom: 16px;
+  padding: 6px;
+  user-select: none;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content-inner {
+  width: 100%;
+  max-width: 760px;
+}
+
+.page-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: 1.5rem;
+}
+
+// === SIDEBAR NAV BUTTONS ===
+.sidebar-nav-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-md;
+  border: none;
+  background: transparent;
+  color: $text-secondary;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover {
+    background: $bg-elevated;
+    color: $text-primary;
+  }
+
+  &.active {
+    background: $accent-muted;
+    color: $text-primary;
+    box-shadow: inset 2px 0 0 $accent-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// === FILE SECTIONS ===
 .file-section {
-  @include file-section();
+  @include surface-card;
+  padding: $spacer * 1.25;
+  margin-bottom: $spacer;
+  transition: border-color $transition-base;
+
+  &:hover {
+    border-color: #4a4a4a;
+  }
+
+  &.selected {
+    border-color: $accent;
+  }
+
+  label {
+    display: block;
+    font-weight: 500;
+    color: $text-secondary;
+    font-size: 0.8125rem;
+    margin-bottom: $spacer * 0.75;
+  }
 }
 
 .file-path {
   font-size: 0.75rem;
-  color: $text-medium;
-  margin-top: $spacer * 0.625;
+  color: $text-muted;
+  margin-top: $spacer * 0.5;
   word-break: break-all;
   font-family: $font-mono;
-  opacity: 0.8;
 }
 
-// Mode toggle component
-.mode-toggle {
-  border-radius: $border-radius-pill;
-  overflow: clip;
-  border: 1px solid $border-medium;
+// === BUTTONS ===
+// Override Bootstrap buttons for dark theme
+.btn {
+  font-family: $font-body;
+  font-weight: 500;
+  border-radius: $radius-md;
+  font-size: 0.8125rem;
+  padding: 0.5rem 1rem;
+  transition: background $transition-fast, border-color $transition-fast, opacity $transition-fast;
 
-  .mode-btn {
-    @include glass-card($glass-bg-medium, transparent, 5px);
-    color: $text-light;
-    padding: 0.75rem 1.875rem;
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-family: $font-primary;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: $transition-base;
-
-    &.active {
-      @include gradient-primary();
-      color: white;
-    }
-
-    &:hover:not(.active) {
-      background: linear-gradient(135deg,
-              rgba(255, 255, 255, 0.15) 0%,
-              rgba(255, 255, 255, 0.08) 100%);
-    }
+  &::before {
+    display: none; // kill any sweep pseudo-elements
   }
 }
 
-// Star field background
-.stars {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: -1;
+.btn-secondary {
+  background: $accent;
+  border-color: $accent;
+  color: white;
+
+  &:hover {
+    background: $accent-hover;
+    border-color: $accent-hover;
+  }
+
+  &:disabled {
+    background: $bg-elevated;
+    border-color: $border-default;
+    color: $text-muted;
+    opacity: 0.5;
+  }
 }
 
-.star {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: #fff;
-  border-radius: 50%;
-  animation: twinkle 3s infinite;
+.btn-dark {
+  background: $bg-elevated;
+  border-color: $border-default;
+  color: $text-secondary;
+
+  &:hover {
+    background: #363636;
+    border-color: #4a4a4a;
+    color: $text-primary;
+  }
 }
 
-// Cursor effects
-.cursor-trail {
-  position: fixed;
-  width: 4px;
-  height: 4px;
-  background: $primary-cyan;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  opacity: 0.6;
-  animation: trailFade 0.8s ease-out forwards;
+.btn-outline-dark {
+  background: transparent;
+  border-color: $border-default;
+  color: $text-muted;
+
+  &:hover {
+    background: $bg-elevated;
+    color: $text-secondary;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
 }
 
-.explosion-star {
-  position: fixed;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  animation: starExplosion 1.2s ease-out forwards;
+// === COMBINE / ACTION BUTTON ===
+.combine-button {
+  background: $accent !important;
+  border-color: $accent !important;
+  color: white !important;
+  font-size: 1rem !important;
+  padding: 0.875rem 1.5rem !important;
+  font-weight: 600;
+  border-radius: $radius-lg !important;
+
+  &:hover:not(:disabled) {
+    background: $accent-hover !important;
+    border-color: $accent-hover !important;
+  }
+
+  &:disabled {
+    background: $bg-elevated !important;
+    border-color: $border-default !important;
+    color: $text-muted !important;
+    opacity: 0.5;
+  }
+
+  h5 {
+    font-family: $font-body;
+    font-weight: 600;
+  }
 }
 
-// Workflow steps
+// === WORKFLOW STEPS ===
 .workflow-step {
+  transition: opacity $transition-base;
+
+  &.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  &.completed {
+    opacity: 0.85;
+  }
+
   .step-number {
-    border-radius: 50%;
-    height: 2rem;
     width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    background: $bg-elevated;
+    color: $text-muted;
+    flex-shrink: 0;
+    transition: background $transition-base, color $transition-base;
   }
 
   &.active .step-number {
-    @include gradient-primary();
-    border-color: rgba($primary-cyan, 0.6);
+    background: $accent;
     color: white;
-    box-shadow: $shadow-glow-cyan, $shadow-glow-purple;
   }
 
   &.completed .step-number {
-    @include gradient-success();
-    border-color: rgba($success-green, 0.6);
+    background: $success;
     color: white;
-  }
-
-  &.disabled {
-    .file-section {
-      background: linear-gradient(135deg,
-              rgba(255, 255, 255, 0.03) 0%,
-              rgba(255, 255, 255, 0.01) 100%);
-      border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    button {
-      background: linear-gradient(45deg, #333, #555);
-      cursor: not-allowed;
-    }
-
-    .file-path {
-      color: #666;
-    }
   }
 }
 
-
-
-// Trim interface specific styles
+// === TIMELINE (TRIM INTERFACE) ===
 .timeline-container {
-  margin-top: $spacer * 1.25;
+  margin-top: $spacer;
 }
 
 .frame-previews {
   display: flex;
   justify-content: space-between;
-  margin-bottom: $spacer * 1.25;
-  gap: $spacer * 1.25;
+  margin-bottom: $spacer;
+  gap: $spacer;
 }
 
 .frame-preview {
@@ -244,21 +328,19 @@ body {
 
 .frame-label {
   text-align: center;
-  color: $primary-cyan;
-  font-family: $font-primary;
-  font-weight: 700;
+  color: $text-secondary;
+  font-weight: 500;
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: $spacer * 0.625;
+  margin-bottom: $spacer * 0.5;
 }
 
 .frame-container {
   position: relative;
   width: 100%;
   aspect-ratio: 16/9;
-  @include glass-card();
-  border-radius: $border-radius-sm;
+  background: $bg-elevated;
+  border: 1px solid $border-default;
+  border-radius: $radius-md;
   overflow: hidden;
 }
 
@@ -266,7 +348,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: $border-radius-sm;
+  border-radius: $radius-md;
 }
 
 .frame-placeholder {
@@ -278,52 +360,69 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  @include glass-card(rgba(255, 255, 255, 0.05), transparent);
+  background: $bg-elevated;
 }
 
 .loading-text {
-  color: $text-dark;
-  font-family: $font-primary;
+  color: $text-muted;
   font-size: 0.75rem;
 }
 
-// Timeline specific
+.frame-preview.loading .frame-placeholder::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid transparent;
+  border-top: 2px solid $accent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .timeline-track {
   position: relative;
   height: 8px;
-  @include glass-card($glass-bg-dark, $border-light);
-  border-radius: 4px;
-  margin: $spacer * 1.25 0;
+  background: $bg-elevated;
+  border-radius: $radius-sm;
+  border: 1px solid $border-subtle;
+  margin: $spacer 0;
+  cursor: pointer;
 }
 
-.timeline-selection {
+.timeline-range {
   position: absolute;
+  top: 0;
   height: 100%;
-  @include gradient-primary();
-  border-radius: 4px;
-  opacity: 0.8;
+  background: $accent;
+  border-radius: $radius-sm;
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 .timeline-handle {
   position: absolute;
   top: -8px;
-  width: 20px;
+  width: 16px;
   height: 24px;
-  @include gradient-primary();
-  border-radius: 6px;
+  background: $accent;
+  border-radius: $radius-sm;
   cursor: grab;
-  box-shadow:
-          0 4px 12px rgba($primary-cyan, 0.4),
-          $shadow-glow-purple;
-  transition: $transition-fast;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform $transition-fast;
   z-index: 10;
   transform: translateX(-50%);
 
   &:hover {
     transform: translateX(-50%) scale(1.1);
-    box-shadow:
-            0 6px 20px rgba($primary-cyan, 0.6),
-            0 0 30px rgba($primary-purple, 0.5);
   }
 
   &:active,
@@ -339,19 +438,19 @@ body {
   top: -30px;
   left: 50%;
   transform: translateX(-50%);
-  @include glass-card(rgba(0, 0, 0, 0.8), rgba($primary-cyan, 0.3));
-  color: $primary-cyan;
-  padding: 0.25rem 0.5rem;
-  border-radius: 8px;
+  background: $bg-surface;
+  border: 1px solid $border-default;
+  color: $text-primary;
+  padding: 2px 6px;
+  border-radius: $radius-sm;
   font-size: 0.6875rem;
-  font-family: $font-primary;
-  font-weight: 700;
+  font-family: $font-mono;
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .timeline-info {
-  color: $text-medium;
-  font-family: $font-primary;
+  color: $text-secondary;
   font-size: 0.75rem;
 }
 
@@ -363,132 +462,538 @@ body {
 
 .selection-info {
   text-align: center;
-  color: $primary-cyan;
-  font-weight: 700;
+  color: $accent;
+  font-weight: 600;
 }
 
 .time-label {
-  color: $text-dark;
+  color: $text-muted;
   font-size: 0.6875rem;
 }
 
-// Progress section
-.progress-section {
-  .progress {
-    height: 8px;
-    border-radius: 4px;
-    @include glass-card($glass-bg-dark, $border-light);
+.video-info {
+  margin-top: $spacer;
+  padding: 0.5rem 0.75rem;
+  background: $bg-elevated;
+  border-radius: $radius-sm;
+  color: $text-secondary;
+  font-family: $font-mono;
+  font-size: 0.8125rem;
+}
 
-    .progress-bar {
-      @include gradient-primary();
-      border-radius: 4px;
+// === PROGRESS SECTION ===
+.progress-section {
+  margin-top: $spacer * 1.5;
+  @include surface-card;
+  padding: $spacer;
+}
+
+.cm-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: $bg-elevated;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  margin-bottom: $spacer * 0.75;
+}
+
+.cm-progress-fill {
+  height: 100%;
+  background: $accent;
+  transition: width $transition-base;
+  border-radius: $radius-sm;
+}
+
+.progress-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: $spacer;
+  min-height: 32px;
+}
+
+.status-message {
+  font-size: 0.8125rem;
+  color: $text-primary;
+  font-weight: 500;
+  flex: 1;
+
+  &.error {
+    color: $danger;
+  }
+
+  &.success {
+    color: $success;
+  }
+}
+
+.cancel-button {
+  background: $danger;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: $font-body;
+  font-weight: 500;
+  transition: background $transition-fast;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f87171;
+  }
+}
+
+// === TRIM OPTION DIALOG ===
+.trim-option-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity $transition-base;
+
+  &.show {
+    opacity: 1;
+  }
+}
+
+.trim-option-content {
+  @include surface-card;
+  padding: 32px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+}
+
+.trim-option-header {
+  h3 {
+    color: $text-primary;
+    font-family: $font-body;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    color: $text-secondary;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+}
+
+.trim-option-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.trim-option-btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: $radius-md;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-family: $font-body;
+  font-weight: 500;
+  transition: background $transition-fast;
+
+  &.primary {
+    background: $accent;
+    color: white;
+
+    &:hover {
+      background: $accent-hover;
+    }
+  }
+
+  &.secondary {
+    background: $bg-elevated;
+    color: $text-secondary;
+    border: 1px solid $border-default;
+
+    &:hover {
+      background: #363636;
+      color: $text-primary;
     }
   }
 }
 
-// Utility classes
-.text-glow-cyan {
-  @include text-glow($primary-cyan);
+// === RENAMER INTERFACE ===
+.rename-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
 }
 
-.text-glow-purple {
-  @include text-glow($primary-purple);
+.rename-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.glass-bg {
-  @include glass-card();
+.rename-setting-label {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  font-weight: 500;
+  min-width: 90px;
 }
 
-// Bootstrap utility overrides for cosmic theme
-.text-primary {
-  color: $primary-cyan !important;
+.rename-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.25rem;
 }
 
-.bg-primary {
-  @include gradient-primary();
+.rename-preview-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.border-primary {
-  border-color: $primary-cyan !important;
+.rename-preview-group-label {
+  font-size: 0.6875rem;
+  color: $text-muted;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
 }
 
-// Additional styles for the renamer interface with episode offset
+.rename-complete-summary {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  margin-bottom: 1rem;
+}
+
+.renamed-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
 
 .renamer-interface {
-  .season-input-container {
-    .episode-offset-input {
-      text-align: center;
-      font-weight: 600;
-    }
-  }
-
   .preview-section {
-
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: $spacer;
+    background: $bg-elevated;
+    border-radius: $radius-md;
+    border: 1px solid $border-subtle;
 
     h5, h6 {
-      color: $text-light;
+      color: $text-secondary;
+      font-weight: 500;
+      font-size: 0.8125rem;
       margin-bottom: 0.75rem;
     }
 
     .preview-item {
       .original-name {
-
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
       .arrow {
-        color: $text-medium;
+        color: $text-muted;
         flex-shrink: 0;
       }
 
       .new-name {
-        font-weight: 600;
-        color: $primary-cyan;
+        font-weight: 500;
+        color: $accent;
       }
     }
 
     .more-files {
       font-style: italic;
+      color: $text-muted;
       margin-top: 0.5rem;
     }
   }
 
   .preview-loading {
-    margin-top: 1rem;
+    margin-top: $spacer;
     padding: 0.75rem;
-    background: rgba($primary-cyan, 0.1);
-    border-radius: 6px;
-    border: 1px solid rgba($primary-cyan, 0.2);
+    background: $accent-muted;
+    border-radius: $radius-md;
+    border: 1px solid rgba($accent, 0.2);
   }
 
-
-
   .rename-controls {
-    margin-top: 1rem;
+    margin-top: $spacer;
 
     .rename-button {
-      @include gradient-primary();
+      background: $accent;
+      border-color: $accent;
+      color: white;
       border: none;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      padding: 0.625rem 1.25rem;
+      border-radius: $radius-md;
+      font-family: $font-body;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background $transition-fast;
 
       &:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba($primary-cyan, 0.3);
+        background: $accent-hover;
       }
 
       &:disabled {
-        opacity: 0.6;
+        opacity: 0.5;
         cursor: not-allowed;
       }
     }
   }
+
+  .season-input-container {
+    .episode-offset-input {
+      text-align: center;
+      font-weight: 500;
+    }
+  }
+}
+
+// === BOOTSTRAP FORM OVERRIDES ===
+.form-control {
+  background: $bg-elevated;
+  border-color: $border-default;
+  color: $text-primary;
+  border-radius: $radius-md;
+  font-family: $font-body;
+
+  &:focus {
+    background: $bg-elevated;
+    border-color: $accent;
+    color: $text-primary;
+    box-shadow: 0 0 0 2px $accent-muted;
+  }
+
+  &:disabled {
+    background: $bg-surface;
+    color: $text-muted;
+  }
+}
+
+// === BOOTSTRAP TEXT UTILITY OVERRIDES ===
+.text-primary {
+  color: $accent !important;
+}
+
+.text-warning {
+  color: $warning !important;
+}
+
+.text-white-50 {
+  color: $text-muted !important;
+}
+
+// === SPINNER ===
+.spinner-border-sm {
+  border-color: $accent;
+  border-right-color: transparent;
+}
+
+// === STEPPER ===
+.stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.stepper-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: background $transition-base, color $transition-base, border-color $transition-base;
+
+  &.upcoming {
+    background: transparent;
+    border: 2px solid $border-default;
+    color: $text-muted;
+  }
+
+  &.active {
+    background: $accent;
+    border: 2px solid $accent;
+    color: white;
+  }
+
+  &.completed {
+    background: $success;
+    border: 2px solid $success;
+    color: white;
+  }
+}
+
+.stepper-label {
+  font-size: 0.6875rem;
+  color: $text-muted;
+  white-space: nowrap;
+  transition: color $transition-base;
+
+  &.active {
+    color: $text-primary;
+    font-weight: 500;
+  }
+}
+
+.stepper-line {
+  flex: 1;
+  height: 1px;
+  background: $border-default;
+  margin: 0 4px 20px;
+  transition: background $transition-base;
+
+  &.completed {
+    background: $success;
+  }
+}
+
+// === WIZARD ===
+.merge-wizard {
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-body {
+  margin-bottom: 1.5rem;
+  min-height: 120px;
+}
+
+.wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid $border-subtle;
+}
+
+// === REVIEW STEP ===
+.review-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.review-row {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+
+  .review-label {
+    font-size: 0.8125rem;
+    color: $text-secondary;
+    font-weight: 500;
+    min-width: 56px;
+    flex-shrink: 0;
+  }
+
+  .review-path {
+    font-family: $font-mono;
+    font-size: 0.75rem;
+    color: $text-primary;
+    word-break: break-all;
+  }
+}
+
+// === TOAST NOTIFICATIONS ===
+.toast-stack {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 9999;
+  max-width: 360px;
+  width: calc(100vw - 2.5rem);
+}
+
+.toast-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: $radius-md;
+  border: 1px solid $border-default;
+  background: $bg-elevated;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  animation: toast-in 150ms ease;
+
+  &.toast-error {
+    border-color: rgba($danger, 0.4);
+    background: color.mix($danger, $bg-elevated, 8%);
+
+    .toast-icon { color: $danger; }
+  }
+
+  &.toast-success {
+    border-color: rgba($success, 0.4);
+    background: color.mix($success, $bg-elevated, 8%);
+
+    .toast-icon { color: $success; }
+  }
+
+  &.toast-info {
+    border-color: rgba($accent-hover, 0.4);
+
+    .toast-icon { color: $accent-hover; }
+  }
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: $text-primary;
+  line-height: 1.4;
+}
+
+.toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: $text-muted;
+  display: flex;
+  align-items: center;
+  margin-top: 1px;
+  transition: color $transition-fast;
+
+  &:hover { color: $text-primary; }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
